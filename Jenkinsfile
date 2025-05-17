@@ -1,60 +1,43 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    NODE_ENV = 'test'
-  }
-
-  tools {
-    nodejs 'NodeJS_18' // Asegúrate de que esta versión esté instalada en Jenkins (puedes cambiarla)
-  }
-
-  options {
-    timestamps()
-    skipDefaultCheckout(false)
-  }
-
-  stages {
-
-    stage('Checkout código') {
-      steps {
-        checkout scm
-      }
+    tools {
+        nodejs 'NodeJS'  // Este nombre debe coincidir con el NodeJS configurado en Jenkins
     }
 
-    stage('Instalar dependencias') {
-      steps {
-        echo 'Instalando dependencias con npm...'
-        sh 'npm install'
-      }
+    environment {
+        NODE_OPTIONS = '--experimental-vm-modules'
     }
 
-    stage('Ejecutar pruebas') {
-      steps {
-        echo 'Ejecutando pruebas unitarias...'
-        sh 'npm test'
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install dependencies') {
+            steps {
+                bat 'npm install'
+            }
+        }
+
+        stage('Run tests') {
+            steps {
+                bat 'npm test'
+            }
+        }
     }
 
-    stage('Generar reporte de pruebas') {
-      steps {
-        echo 'Generando reporte de pruebas...'
-        junit allowEmptyResults: true, testResults: '**/test-results/junit.xml'
-      }
+    post {
+        always {
+            echo 'Build finished'
+        }
+        success {
+            echo 'Tests passed!'
+        }
+        failure {
+            echo 'Tests failed!'
+        }
     }
-  }
-
-  post {
-    always {
-      echo 'Proceso finalizado.'
-    }
-
-    success {
-      echo 'Build exitoso 🎉'
-    }
-
-    failure {
-      echo 'Build fallido ❌'
-    }
-  }
 }
